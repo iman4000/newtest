@@ -94,6 +94,8 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 
 		print_data_db(result_robot_phishing);
 
+		db_free_result(result_robot_phishing);
+
 		PTRACE(INFO, CHRDC, "printting from tblRobotResultPhishing_humanQueue is finished!");
 
 	else if(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING){
@@ -105,6 +107,8 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 		MYSQL_RES *result_robot_nonfishing;
 
 		print_data_db(result_robot_nonfishing);
+
+		db_free_result(result_robot_nonfishing);
 
 		PTRACE(INFO, CHRDC, "printting from tblRobotResultNonPhishing is finished!");
 	}
