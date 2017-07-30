@@ -11,6 +11,7 @@
 #define PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING	1
 #define PHISHING_ROBOT_PROCESS_STATUS_FAILUR		2
 
+#define SECOND_INTERVAL(__TIME_COUNTER__, __SECOND__) ((__TIME_COUNTER__ % (__SECOND__)) == 0 ? 1 : 0)
 
 typedef struct{
 	uint64_t id;
@@ -90,12 +91,15 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 
 		_db_query(db_context.db_conn, query);
 
-		MYSQL_RES *result_robot_phishing;
+		MYSQL_RES* result_robot_phishing;
+
+		PTRACE(INFO, CHRDC, "printting from tblRobotResultPhishing_humanQueue is starting!");
 
 		print_data_db(result_robot_phishing);
+		db_free_result(result_robot_phishing);
 
 		PTRACE(INFO, CHRDC, "printting from tblRobotResultPhishing_humanQueue is finished!");
-
+	}
 	else if(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING){
 		
 		init_connection();
@@ -104,13 +108,20 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 
 		MYSQL_RES *result_robot_nonfishing;
 
+		PTRACE(INFO, CHRDC, "printting from tblRobotResultNonPhishing_humanQueue is starting!");
+
 		print_data_db(result_robot_nonfishing);
+		db_free_result(result_robot_nonfishing);
 
 		PTRACE(INFO, CHRDC, "printting from tblRobotResultNonPhishing is finished!");
 	}
 
 	else(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_FAILUR){
-
+		/////////////do somethings
 	}
 
+}
+
+void general_update_db(){
+	
 }
