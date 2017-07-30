@@ -14,6 +14,7 @@
 
 #define SECOND_INTERVAL(__TIME_COUNTER__, __SECOND__) ((__TIME_COUNTER__ % (__SECOND__)) == 0 ? 1 : 0)
 
+
 static char query[256];
 
 typedef struct{
@@ -40,18 +41,19 @@ static bool load_config(){
 	strncpy(db_context.db_name, "SAMPLE", sizeof(db_context.db_name));
 }
 
-void init_connection(){
+int init_connection(){
 	load_config();
+	int retval;
 
-		if(0 != (int retval = db_connection_init(&db_context.db_conn, db_context.db_server_addr, db_context.db_username, db_context.db_pass, db_context.db_name))){
-			PTRACE( INFO , CHRDC , "connection can not established!\n");
+		if(0 != (retval = db_connection_init(&db_context.db_conn, db_context.db_server_addr, db_context.db_username, db_context.db_pass, db_context.db_name))){
+			PTRACE( 0 , 0 , "connection can not established!\n");
 			return retval;
 		}
-		PTRACE(INFO, CHRDC, "connection initiate successfully!\n");
+		PTRACE(0, 0, "connection initiate successfully!\n");
 }
 
 
-bool update_event_delete(const tblname, MYSQL_ROW to_be_delete_rows){
+bool update_event_delete(const char *tblname, MYSQL_ROW to_be_delete_rows){
 	
 	sprintf(query, "DELETE FROM %s WHERE AddDate =%d",tblname, to_be_delete_rows);
 	_db_query(db_context.db_conn, query);
@@ -63,14 +65,12 @@ void print_data_db(MYSQL_RES* total_res){
 	int num_fields = mysql_num_fields(total_res);
 	MYSQL_FIELD *field;
 
-	if(NULL != total_res = _db_store_res(db_context.db_conn)){
-
-		PTRACE(INFO, CHRDC, "store result of database...");
+		PTRACE(0, 0, "store result of database...");
 
 		while(row = mysql_fetch_row(total_res)){
 			for(int i = 0; i < num_fields; i++){
 				if (i == 0) {              
-            		while(field = mysql_fetch_field(result)) {
+            		while(field = mysql_fetch_field(total_res)) {
                 		printf("%s ", field->name);
              		}
              		printf("\n");
@@ -78,48 +78,63 @@ void print_data_db(MYSQL_RES* total_res){
 				printf("%s ", row[i] ? row[i] : "NULL");		
 				}	
 			}
-		}
 }
 
 void func(ROBOT_PROCESS_EVENT_ST* process_event){
 
-	if(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_PHISHING){
+	if(process_event->process_status == PHISHING_ROBOT_PROCESS_STATUS_PHISHING){
 		
-		init_connection();
+		if(0 == init_connection()){
 		
-		sprintf(query, "SELECT * FROM tblRobotResultPhishing_humanQueue WHERE EvenrId == %u", process_event.id);
+		sprintf(query, "SELECT * FROM tblRobotResultPhishing_humanQueue WHERE EventId == %u", process_event->id);
 
 		_db_query(db_context.db_conn, query);
 
 		MYSQL_RES* result_robot_phishing;
+		if(NULL !=(result_robot_phishing = _db_store_result(db_context.db_conn))){
+			PTRACE(0, 0, "printting from tblRobotResultPhishing_humanQueue is starting!");
 
-		PTRACE(INFO, CHRDC, "printting from tblRobotResultPhishing_humanQueue is starting!");
+			print_data_db(result_robot_phishing);
+			db_free_result(result_robot_phishing);
 
-		print_data_db(result_robot_phishing);
-		db_free_result(result_robot_phishing);
-
-		PTRACE(INFO, CHRDC, "printting from tblRobotResultPhishing_humanQueue is finished!");
+			PTRACE(0, 0, "printting from tblRobotResultPhishing_humanQueue is finished!");
+		}
+		}
 	}
-	else if(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING){
+	else if(process_event->process_status == PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING){
 		
-		init_connection();
+		if(0 == init_connection()){
 
-		sprintf(query, "SELECT * FROM tblRobotResultNonPhishing WHERE EvenrId == %u", process_event.id);
+			sprintf(query, "SELECT * FROM tblRobotResultNonPhishing WHERE EventId == %u", process_event->id);
 
-		MYSQL_RES *result_robot_nonfishing;
+			MYSQL_RES *result_robot_nonfishing;
+			if(NULL != (result_robot_nonfishing = _db_store_result(db_context.db_conn))){
+				PTRACE(0, 0, "printting from tblRobotResultNonPhishing is starting!");
 
-		PTRACE(INFO, CHRDC, "printting from tblRobotResultNonPhishing_humanQueue is starting!");
+				print_data_db(result_robot_nonfishing);
+				db_free_result(result_robot_nonfishing);
 
-		print_data_db(result_robot_nonfishing);
-		db_free_result(result_robot_nonfishing);
-
-		PTRACE(INFO, CHRDC, "printting from tblRobotResultNonPhishing is finished!");
+				PTRACE(0, 0, "printting from tblRobotResultNonPhishing is finished!");
+			}
+		}
 	}
 
-	else(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_FAILUR){
-		/////////////do somethings
-	}
+	else if(process_event->process_status == PHISHING_ROBOT_PROCESS_STATUS_FAILUR){
+		if(0 == init_connection()){
 
+			sprintf(query, "SELECT * FROM tblRobotProcessFailur WHERE EventId == %u", process_event->id);
+
+			MYSQL_RES *result_robot_failur;
+			if(NULL != (result_robot_failur = _db_store_result(db_context.db_conn))){
+				PTRACE(0, 0, "printting from tblRobotProcessFailur is starting!");
+
+				print_data_db(result_robot_failur);
+				db_free_result(result_robot_failur);
+
+				PTRACE(0, 0, "printting from tblRobotResultNonPhishing is finished!");
+			}
+		}
+	}
 }
 
 void general_update_db(const char *tblname){
@@ -130,17 +145,20 @@ void general_update_db(const char *tblname){
 	sprintf(query, "SELECT DateAdd from %s", tblname);
 	_db_query(db_context.db_conn , query);
 
-	res_for_time = _db_store_res(con);
+	if(NULL !=(res_for_time = _db_store_result(db_context.db_conn))){
 
 
-	while(1){
-		while(row_of_time = mysql_fetch_row(res_for_time)){
-			if(SECOND_INTERVAL(row_of_time,DELETE_PERIOD)){
-				PTRACE(INFO, CHRDC, "deleting old data is stating...");
-				if(update_event_delete(const tblname, row_of_time))
-					PTRACE(INFO, CHRDC, "delete old data is finished!");
+		while(1){
+			while(row_of_time = mysql_fetch_row(res_for_time)){
+				long int time_container;
+				time_container = strtoul(row_of_time[0], NULL,0);
+				if(SECOND_INTERVAL(time_container,DELETE_PERIOD)){
+					PTRACE(0, 0, "deleting old data is stating...");
+					if(update_event_delete(tblname, row_of_time))
+						PTRACE(0, 0, "delete old data is finished!");
+				}
 			}
 		}
+		db_free_result(res_for_time);
 	}
-	db_free_result(res_for_time);
 }

@@ -10,9 +10,9 @@
 
 #include <mysql/mysql.h>
 
-#include "client_def.h"
-#include "../server_share/include/clients_def.h"
-#include "database_api.h"
+//#include "client_def.h"
+//#include "../server_share/include/clients_def.h"
+//#include "database_api.h"
 
 //#include "https_process_print_statistics.c"
 

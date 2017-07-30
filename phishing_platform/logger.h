@@ -43,7 +43,7 @@ static void Log( int tLevel , int moduleid , const char* filename , int linenumb
 }
 
 #define PTRACE(l,o,...) \
-Log( l , o , __FILE__ , __LINE__ ,__VA_ARGS__)
+Log( l , o , __FILE__ , __LINE__ , ##__VA_ARGS__)
 
 
 
