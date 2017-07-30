@@ -10,8 +10,11 @@
 #define PHISHING_ROBOT_PROCESS_STATUS_PHISHING		0
 #define PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING	1
 #define PHISHING_ROBOT_PROCESS_STATUS_FAILUR		2
+#define DELETE_PERIOD 10
 
 #define SECOND_INTERVAL(__TIME_COUNTER__, __SECOND__) ((__TIME_COUNTER__ % (__SECOND__)) == 0 ? 1 : 0)
+
+static char query[256];
 
 typedef struct{
 	uint64_t id;
@@ -48,12 +51,11 @@ void init_connection(){
 }
 
 
-bool update_event_delete(){
-	//delete events after period...
-}
+bool update_event_delete(const tblname, MYSQL_ROW to_be_delete_rows){
+	
+	sprintf(query, "DELETE FROM %s WHERE AddDate =%d",tblname, to_be_delete_rows);
+	_db_query(db_context.db_conn, query);
 
-void update_events_db(){
-	//update events a timestamp_sync 
 }
 
 void print_data_db(MYSQL_RES* total_res){
@@ -80,8 +82,6 @@ void print_data_db(MYSQL_RES* total_res){
 }
 
 void func(ROBOT_PROCESS_EVENT_ST* process_event){
-
-	char query[256];
 
 	if(process_event.process_status == PHISHING_ROBOT_PROCESS_STATUS_PHISHING){
 		
@@ -122,6 +122,25 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 
 }
 
-void general_update_db(){
-	
+void general_update_db(const char *tblname){
+
+	MYSQL_RES *res_for_time;
+	MYSQL_ROW row_of_time;
+
+	sprintf(query, "SELECT DateAdd from %s", tblname);
+	_db_query(db_context.db_conn , query);
+
+	res_for_time = _db_store_res(con);
+
+
+	while(1){
+		while(row_of_time = mysql_fetch_row(res_for_time)){
+			if(SECOND_INTERVAL(row_of_time,DELETE_PERIOD)){
+				PTRACE(INFO, CHRDC, "deleting old data is stating...");
+				if(update_event_delete(const tblname, row_of_time))
+					PTRACE(INFO, CHRDC, "delete old data is finished!");
+			}
+		}
+	}
+	db_free_result(res_for_time);
 }
