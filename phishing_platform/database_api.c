@@ -78,17 +78,31 @@ int _db_query(MYSQL *mysql_conn, char* sql ) {
 	int ret = 0;
 	
 	if ( 0 == ( ret = mysql_ping( mysql_conn ) ) ) {
+
+		PTRACE(0,0, "can you hear me?");
+
 		ret = mysql_query( mysql_conn , sql );
+
+		//fprintf(stderr, "%s\n", mysql_error(mysql_conn));
+		printf("ret is : %d\n", ret);
+
 		//syslog ( LOG_INFO , "db_query( %u , [%s] )" , connection_id , sql );
+		if(NULL != mysql_error(mysql_conn)){
+
+		   PTRACE(0,0, "_db_query has a error\n");
+			//fprintf(stderr, "%s\n", mysql_error(mysql_conn));
+		}
 		if ( 0 != ret && NULL != mysql_error( mysql_conn ) ) {
 			
 			syslog ( LOG_INFO , "Mysql query connection %s", mysql_error( mysql_conn ) );
+			PTRACE(0,0, "FAIL HERE IN _DB_QUERY");
 		}
 
 	} else {
 		PTRACE( 0 , 0 , "Mysql Ping Error connection %s" ,mysql_error( mysql_conn ) );
 	
 	}
+	PTRACE(0,0, "reach to return ret...\n");
 	return ret;
 }
 
