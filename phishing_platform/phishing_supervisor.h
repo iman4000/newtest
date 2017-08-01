@@ -6,6 +6,14 @@
 #include <mysql/my_global.h>
 #include <stdint.h>
 
+#define PHISHING_MINER_EVENT_TYPE_NON_PHISHING_ADD			0
+#define PHISHING_MINER_EVENT_TYPE_NON_PHISHING_DEL			1
+
+#define PHISHING_ROBOT_PROCESS_STATUS_PHISHING		0
+#define PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING	1
+#define PHISHING_ROBOT_PROCESS_STATUS_FAILUR		2
+#define DELETE_PERIOD 10
+
 typedef struct{
 	char db_server_addr[16];
 	char db_username[128];

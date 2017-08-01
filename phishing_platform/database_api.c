@@ -21,29 +21,33 @@
 
 
 int db_connection_init(MYSQL **p_mysql_conn, const char *server, const char *username, const char *password, const char *database){
-	
+	//PTRACE(0,0,"connection init1");
 	uint32_t reconnect = 1;
-	if ( NULL == ( *p_mysql_conn = mysql_init( NULL ) ) ) {
+	if(!(*p_mysql_conn = mysql_init( NULL ))) PTRACE(0,0, "mysql_init crashed!");
+	if ( NULL == ( *p_mysql_conn ) ) {
 		PTRACE( 0 , 0 , "Mysql Init error %s", mysql_error( *p_mysql_conn ) );
 		
 		return 1;
 	}
+	//PTRACE(0,0,"connection init2");
 	if ( 0 != mysql_options(*p_mysql_conn, MYSQL_OPT_RECONNECT, &reconnect ) ) {
 		PTRACE( 0 , 0 , "Mysql Set Options error %s", mysql_error( *p_mysql_conn ) );
 
 		return 1;
 	}
+	//PTRACE(0,0,"connection init3");
 	if ( mysql_real_connect( *p_mysql_conn , server, username, password , database , 0, NULL, 0) == NULL) {
 		PTRACE( 0 , 0 , "Mysql real connect error %s" , mysql_error( *p_mysql_conn ) );
 
 		return 1;
 	}
+	//PTRACE(0,0,"connection init4");
 	if ( 0 != mysql_options(*p_mysql_conn, MYSQL_OPT_RECONNECT, &reconnect ) ) {
 		PTRACE( 0 , 0 , "Mysql Set Options error %s", mysql_error( *p_mysql_conn ) );
 
 		return 1;
 	}
-
+	//PTRACE(0,0,"connection init5");
 
 	return 0;
 
@@ -79,19 +83,14 @@ int _db_query(MYSQL *mysql_conn, char* sql ) {
 	
 	if ( 0 == ( ret = mysql_ping( mysql_conn ) ) ) {
 
-		PTRACE(0,0, "can you hear me?");
+		if(!mysql_query( mysql_conn , sql )){
+			PTRACE(0,0, "mysql_query can't run");
+        //exit(1);
+		}
 
-		ret = mysql_query( mysql_conn , sql );
-
-		//fprintf(stderr, "%s\n", mysql_error(mysql_conn));
 		printf("ret is : %d\n", ret);
 
 		//syslog ( LOG_INFO , "db_query( %u , [%s] )" , connection_id , sql );
-		if(NULL != mysql_error(mysql_conn)){
-
-		   PTRACE(0,0, "_db_query has a error\n");
-			//fprintf(stderr, "%s\n", mysql_error(mysql_conn));
-		}
 		if ( 0 != ret && NULL != mysql_error( mysql_conn ) ) {
 			
 			syslog ( LOG_INFO , "Mysql query connection %s", mysql_error( mysql_conn ) );
@@ -102,7 +101,7 @@ int _db_query(MYSQL *mysql_conn, char* sql ) {
 		PTRACE( 0 , 0 , "Mysql Ping Error connection %s" ,mysql_error( mysql_conn ) );
 	
 	}
-	PTRACE(0,0, "reach to return ret...\n");
+	PTRACE(0,0, "reach to end of _db_query...\n");
 	return ret;
 }
 
@@ -124,11 +123,14 @@ int _db_query(MYSQL *mysql_conn, char* sql ) {
 */
 
 MYSQL_RES* _db_store_result(MYSQL *mysql_conn) {
+	PTRACE(0,0,"db_store_resualt 1");
 	MYSQL_RES *res = mysql_store_result( mysql_conn );
+	PTRACE(0,0,"db_store_resualt 2");
 	//syslog ( LOG_INFO , "db_store_result( %u )" , connection_id );
 	if ( NULL == res && NULL != mysql_error( mysql_conn ) ) {
-		PTRACE( 0 , 0 ,"Mysql Resualt connection(%u) %s" , mysql_error( mysql_conn ) );
+		fprintf(stderr, "%s\n", mysql_error(mysql_conn));
 	}
+	PTRACE(0,0,"db_store_resualt 3");
 	return res;
 }
 
