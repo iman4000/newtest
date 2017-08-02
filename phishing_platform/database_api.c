@@ -83,7 +83,7 @@ int _db_query(MYSQL *mysql_conn, char* sql ) {
 	
 	if ( 0 == ( ret = mysql_ping( mysql_conn ) ) ) {
 
-		if(!mysql_query( mysql_conn , sql )){
+		if(mysql_query( mysql_conn , sql ) < 0){
 			PTRACE(0,0, "mysql_query can't run");
         //exit(1);
 		}
@@ -128,7 +128,7 @@ MYSQL_RES* _db_store_result(MYSQL *mysql_conn) {
 	PTRACE(0,0,"db_store_resualt 2");
 	//syslog ( LOG_INFO , "db_store_result( %u )" , connection_id );
 	if ( NULL == res && NULL != mysql_error( mysql_conn ) ) {
-		fprintf(stderr, "%s\n", mysql_error(mysql_conn));
+		PTRACE(0,0,"db_store_resualt 3");
 	}
 	PTRACE(0,0,"db_store_resualt 3");
 	return res;
