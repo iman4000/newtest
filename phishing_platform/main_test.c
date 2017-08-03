@@ -58,57 +58,10 @@ void print_db(){
 int main(){
 
     extern DB_CONTEXT_ST db_context;
-     ROBOT_PROCESS_EVENT_ST *process_event;
+    ROBOT_PROCESS_EVENT_ST *process_event;
     init_connection();
     // insert_some_val(db_context);
     produce_random_and_delete( &db_context ,process_event);
-    // char que[256];
-
-    // PTRACE(0, 0, "add data in database...");
-    // MYSQL_RES *tem_res;
-    // MYSQL_ROW tem_row;
-    
-    // srand(time(NULL));
-    // int n;
-    // unsigned long row_num;
-
-    // sprintf(que, "SELECT COUNT(*) FROM tblRobotProcessQueue");
-    // _db_query(db_context.db_conn, que);
-
-
-    // PTRACE(0,0,"jaaaaaaaaaalebe");
-    // if(NULL != (tem_res = _db_store_result(db_context.db_conn))){
-    //     PTRACE(0,0, "res is ok#######################################################################################################");
-    //     tem_row = mysql_fetch_row(tem_res);
-    //     row_num = tem_row[0][0];
-    // }
-    // PTRACE(0,0,"jaaaaaaaaaalebe222222222");
-    // int last_id = mysql_insert_id(db_context.db_conn);
-    // process_event = (ROBOT_PROCESS_EVENT_ST *) malloc(sizeof( ROBOT_PROCESS_EVENT_ST ));
-    // PTRACE(0,0, ".............................................. %d", last_id);
-    // printf("last_id = %d --------------- row_num = %d", last_id, row_num);
-    // for(int i = (last_id - row_num); i <=last_id; i++){
-        
-    //     n = rand() % 2;
-    //     if(n == 0){ /* phishing */
-    //         process_event->id = i;
-    //         process_event->process_status = PHISHING_ROBOT_PROCESS_STATUS_PHISHING;
-    //         PTRACE(0,0,"phishing assignment is finished");
-    //     }
-    //     else{ /* non-phishing */
-    //         process_event->id = i;
-    //         process_event->process_status = PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING;
-    //         PTRACE(0,0,"non-phishing assignment is finished");
-    //     }
-    //     func(process_event);
-    //     PTRACE(0,0,"here10");
-        
-    // }
-    //  process_event = NULL;
-    //  free(process_event);
-
-// print_db();
-///////////////////////////update tables here///////////////////
     return 0;
 }
 
@@ -133,48 +86,56 @@ void produce_random_and_delete(DB_CONTEXT_ST *db_context , ROBOT_PROCESS_EVENT_S
 
     PTRACE(0, 0, "add data in database...");
     MYSQL_RES *tem_res;
+    MYSQL_RES *res2;
     MYSQL_ROW tem_row;
+    // MYSQL_ROW row2;
 
     // MYSQL_RES *tem_res2;
     // MYSQL_ROW tem_row2;
     
     srand(time(NULL));
     int n;
-    unsigned long row_num;
+    unsigned long i , max=0;
+    // unsigned long row_num;
 
-    sprintf(que, "SELECT COUNT(*) FROM tblRobotProcessQueue");
+    sprintf(que, "SELECT * FROM tblRobotProcessQueue where ProcessId >= 0");
     _db_query(db_context->db_conn, que);
-
-
     PTRACE(0,0,"jaaaaaaaaaalebe");
+    
     if(NULL != (tem_res = _db_store_result(db_context->db_conn))){
         PTRACE(0,0, "res is ok#######################################################################################################");
-        tem_row = mysql_fetch_row(tem_res);
-        row_num = tem_row[0][0];
+        i = (unsigned long) mysql_num_rows(tem_res);////////number of rows
     }
     PTRACE(0,0,"jaaaaaaaaaalebe222222222");
-    int last_id = mysql_insert_id(db_context->db_conn);
     process_event = (ROBOT_PROCESS_EVENT_ST *) malloc(sizeof( ROBOT_PROCESS_EVENT_ST ));
-    PTRACE(0,0, ".............................................. %d", last_id);
-    printf("last_id = %d --------------- row_num = %d\n", last_id, row_num);
-    /// fetch_row
-        while(tem_row[0][0]){
+    
+    sprintf(que, "SELECT max(EventId) AS max_event FROM tblRobotProcessQueue");
+    _db_query(db_context->db_conn, que);
+    if(NULL != (res2 = _db_store_result(db_context->db_conn))){
+        tem_row = mysql_fetch_row(res2);
+        sscanf(tem_row[0],"%ld",&max);
+        printf("------------------------------------max is %ld-------------------------------------",max);
+    }
+        while(tem_row = mysql_fetch_row(tem_res)){
+            PTRACE(0,0, "#$^^&&*(()*^%%$#$#%%$^%%^&&*^&^^$%##%$#@here is %d", i);
         n = rand() % 2;
         if(n == 0){ /* phishing */
-            process_event->id = tem_row[0][0];
+            process_event->id = max-i;
             process_event->process_status = PHISHING_ROBOT_PROCESS_STATUS_PHISHING;
             PTRACE(0,0,"phishing assignment is finished");
         }
         else{ /* non-phishing */
-            process_event->id = tem_row[0][0];
+            process_event->id = max-i;
             process_event->process_status = PHISHING_ROBOT_PROCESS_STATUS_NON_PHISHING;
             PTRACE(0,0,"non-phishing assignment is finished");
         }
         func(process_event);
         PTRACE(0,0,"here10");
-        tem_row[0][0]--;
+        i--;
     }
      process_event = NULL;
      free(process_event);
+     PTRACE(0,0, "*******************************************END OF DELETE FUNC***********************************************");
+    // PTRACE(0,0, ".............................................. %d", last_id);
 }
 

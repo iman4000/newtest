@@ -42,11 +42,11 @@ int init_connection(){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool update_event_delete(const char *tblname, MYSQL_ROW to_be_delete_rows){
+bool update_event_delete( MYSQL_ROW to_be_delete_rows){
 	
-	sprintf(query, "DELETE FROM %s WHERE AddDate =%d",tblname, to_be_delete_rows);
+	sprintf(query, "DELETE FROM tblRobotProcessQueue WHERE AddDate =%d", to_be_delete_rows);
 	PTRACE(0,0,"here is delete 1");
-	if(_db_query(db_context.db_conn, query)){
+	if(0 ==(_db_query(db_context.db_conn, query))){
 		PTRACE(0,0,"here is delete true");
 		return TRUE;
 	}
@@ -112,11 +112,11 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 			PTRACE(0,0, "let's start deleting queue");
 			sprintf(query, "DELETE FROM tblRobotProcessQueue WHERE EventId = %d", process_event->id);
 			if(0 == (_db_query(db_context.db_conn, query)))
-				PTRACE(0,0, "delete from queue");
+				PTRACE(0,0, "delete from queue_________PHISHING");
 
 
 
-			general_update_db("tblRobotProcessQueue");
+			// general_update_db("tblRobotProcessQueue");
 
 			PTRACE(0,0,"inja4");
 			sprintf(query, "SELECT * FROM tblRobotResultPhishing_humanQueue ");
@@ -147,9 +147,9 @@ void func(ROBOT_PROCESS_EVENT_ST* process_event){
 			PTRACE(0,0, "let's start deleting queue");
 			sprintf(query, "DELETE FROM tblRobotProcessQueue WHERE EventId = %d", process_event->id);
 			if(0 == (_db_query(db_context.db_conn, query)))
-				PTRACE(0,0, "delete from queue");
+				PTRACE(0,0, "delete from queue_______NON-PHISHING");
 
-			general_update_db("tblRobotProcessQueue");
+			// general_update_db("tblRobotProcessQueue");
 
 
 			sprintf(query, "SELECT * FROM tblRobotResultNonPhishing WHERE EventId = %u", process_event->id);
@@ -210,7 +210,7 @@ void general_update_db(const char *tblname){
 				time_container = strtoul(row_of_time[0], NULL,0);
 				if(SECOND_INTERVAL(time_container,DELETE_PERIOD)){
 					PTRACE(0, 0, "deleting old data is stating...");
-					if(update_event_delete(tblname, row_of_time))
+					if(update_event_delete(row_of_time))
 						PTRACE(0, 0, "delete old data is finished!");
 				}
 			}
